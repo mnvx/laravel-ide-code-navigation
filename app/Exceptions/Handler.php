@@ -48,20 +48,21 @@ class Handler extends ExceptionHandler
      */
     public function render($request, Exception $exception)
     {
-        if ($this->isHttpException($exception) && view()->exists('errors.' . $exception->getStatusCode()))
+        if (function_exists('view'))
         {
-            return response()->view('errors.' . $exception->getStatusCode(), [], $exception->getStatusCode());
+            if ($this->isHttpException($exception) && view()->exists('errors.' . $exception->getStatusCode()))
+            {
+                return response()->view('errors.' . $exception->getStatusCode(), [], $exception->getStatusCode());
+            }
+            elseif (view()->exists('errors.error'))
+            {
+                return response()->view('errors.error', [
+                    'exception' => FlattenException::create($exception)
+                ]);
+            }
         }
-        elseif (view()->exists('errors.error'))
-        {
-            return response()->view('errors.error', [
-                'exception' => FlattenException::create($exception)
-            ]);
-        }
-        else
-        {
-            return parent::render($request, $exception);
-        }
+
+        return parent::render($request, $exception);
     }
 
     /**
